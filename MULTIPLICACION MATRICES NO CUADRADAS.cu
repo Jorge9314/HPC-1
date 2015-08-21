@@ -9,7 +9,7 @@ using namespace std;
 __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){
 	int row = blockIdx.y*blockDim.y + threadIdx.y;
 	int col = blockIdx.x*blockDim.x + threadIdx.x;
-	if((row<ancho)&&(col<ancho)){
+	if((row<filA)&&(col<colB)){
 		int suma=0;
 		for(int k=0;k<filB;k++){//Se mueve entre las filas de B 
 			suma=suma+A[(row*colA)+k]*B[(k*colB)+col];
