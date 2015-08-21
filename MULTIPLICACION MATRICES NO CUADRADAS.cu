@@ -1,4 +1,4 @@
-//MULTIPLICACIÓN DE MATRICES(APLANADAS)CUADRADAS EN C++ y CUDA con tiempo
+//MULTIPLICACIÓN DE MATRICES(APLANADAS)NO CUADRADAS EN C++ y CUDA con tiempo
 #include<iostream>
 #include<stdio.h>
 #include<malloc.h>
