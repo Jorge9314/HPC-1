@@ -6,7 +6,7 @@
 using namespace std; 
 
 
-__global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){
+__global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){//filC=filA,colC=colB
 	int row = blockIdx.y*blockDim.y + threadIdx.y;
 	int col = blockIdx.x*blockDim.x + threadIdx.x;
 	if((row<filA)&&(col<colB)){
@@ -14,7 +14,7 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 		for(int k=0;k<filB;k++){//Se mueve entre las filas de B 
 			suma=suma+A[(row*colA)+k]*B[(k*colB)+col];
 		}
-		C[(row*ancho)+col]=suma;
+		C[(row*colB)+col]=suma;
 	}	
 }
 
@@ -49,6 +49,7 @@ __host__ void inicializa(int *A,int filas, int columnas){//inicializa arreglos
 int main(void){
 
 	clock_t startCPU,endCPU,startGPU,endGPU;  
+        cudaError_t error = cudaSuccess;
 	int *A,*B,*C; //A[filA][colA],B[filB][colB],C[filA][colB]
 	int *d_A,*d_B,*d_C,*h_C;
 	int filA=1024,colA=1024,filB=1024,colB=1024;
@@ -80,9 +81,23 @@ int main(void){
 
 	startGPU = clock();
 
-	cudaMalloc((void**)&d_A,filA*colA*sizeof(int));
+	error=cudaMalloc((void**)&d_A,filA*colA*sizeof(int));
+        if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_A"<<endl;
+            return -1;
+        }
+    
 	cudaMalloc((void**)&d_B,filB*colB*sizeof(int));
+        if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_B"<<endl;
+            return -1;
+        }
+        
 	cudaMalloc((void**)&d_C,filA*colB*sizeof(int));	
+        if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_C"<<endl;
+            return -1;
+        }
 	
 	cudaMemcpy(d_A,A,filA*colA*sizeof(int),cudaMemcpyHostToDevice);//destino d_A y origen A
 	cudaMemcpy(d_B,B,filB*colB*sizeof(int),cudaMemcpyHostToDevice);	
