@@ -104,7 +104,7 @@ int main(void){
 
 	//Depende directamente de la dimensión de las matrices
 	dim3 dimblock(32,32,1);
-	dim3 dimGrid(ceil(filA/32),ceil(colB/32),1);
+	dim3 dimGrid(ceil((double)(filA/32)),ceil((double)(colB/32)),1);
 	
 	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
 
