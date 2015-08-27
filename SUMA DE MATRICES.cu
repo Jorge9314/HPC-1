@@ -38,6 +38,7 @@ __host__ void inicializa(int *A,int filas, int columnas){//inicializa arreglos
 
 int main(void){
 
+	cudaError_t error = cudaSuccess;
 	clock_t startCPU,endCPU,startGPU,endGPU;  
 	int *A,*B,*C,*h_C,*d_A,*d_B,*d_C;
 	int filas=2048,columnas=2048,SIZE=filas*columnas*sizeof(int);
@@ -64,9 +65,23 @@ int main(void){
 	
 	startGPU = clock();
 
-	cudaMalloc((void**)&d_A,SIZE);
-	cudaMalloc((void**)&d_B,SIZE);
-	cudaMalloc((void**)&d_C,SIZE);
+	error=cudaMalloc((void**)&d_A,SIZE);
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_A"<<endl;
+            return -1;
+        }
+
+	error=cudaMalloc((void**)&d_B,SIZE);
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_B"<<endl;
+            return -1;
+        }
+
+	error=cudaMalloc((void**)&d_C,SIZE);
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_C"<<endl;
+            return -1;
+        }
 
 	cudaMemcpy(d_A,A,SIZE,cudaMemcpyHostToDevice);
 	cudaMemcpy(d_B,B,SIZE,cudaMemcpyHostToDevice);
@@ -80,7 +95,7 @@ int main(void){
 	
 	endGPU = clock();
 	
-	imprime(h_C,filas,columnas);
+	//imprime(h_C,filas,columnas);
 	double time_GPU=((double)(endGPU-startGPU))/CLOCKS_PER_SEC;
 	cout<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
 	//------------------------------------------------------------------------------------------------------	

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define SIZE 1024 //tamaño de los vectores
+#define SIZE 1000000 //tamaño de los vectores
 
 
 __host__ void inicializaVec(int* X){
@@ -30,7 +30,8 @@ __host__ void SumaVec(int* X,int* Y,int* Z){
 }
 
 __global__ void SumaVecCU(int *A,int *B, int*C){
-	int tid=threadIdx.x;
+	int tid = threadIdx.x + blockIdx.x*blockDim.x;	
+	//int tid=threadIdx.x;
 	//int tid=blockIdx.x;
 	if(tid<SIZE)
 		C[tid]=A[tid]+B[tid];
@@ -39,6 +40,8 @@ __global__ void SumaVecCU(int *A,int *B, int*C){
 
 
 int main(void){
+
+	cudaError_t error = cudaSuccess;
 	clock_t startCPU,endCPU,startGPU,endGPU;  
 	int *A, *B, *C, *d_A, *d_B, *d_C,*h_C; //vectores a los cuales se le van a realizar las operaciones
 
@@ -69,16 +72,31 @@ int main(void){
 	startGPU = clock();
 
 	//Reservamos memoria para el device
-	cudaMalloc((void**)&d_A,SIZE*sizeof(int));
-	cudaMalloc((void**)&d_B,SIZE*sizeof(int));
-	cudaMalloc((void**)&d_C,SIZE*sizeof(int));
+	error=cudaMalloc((void**)&d_A,SIZE*sizeof(int));
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_A"<<endl;
+            return -1;
+        }
+
+	error=cudaMalloc((void**)&d_B,SIZE*sizeof(int));
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_B"<<endl;
+            return -1;
+        }
+
+	error=cudaMalloc((void**)&d_C,SIZE*sizeof(int));
+	if(error != cudaSuccess){
+            cout<<"Error reservando memoria para d_C"<<endl;
+            return -1;
+        }
 
 	cudaMemcpy(d_A,A,SIZE*sizeof(int),cudaMemcpyHostToDevice);//destino d_A y origen A
 	cudaMemcpy(d_B,B,SIZE*sizeof(int),cudaMemcpyHostToDevice);
 	
-	dim3 dimblock(SIZE,1,1);//vamos a utilicar un bloque con size threads
-	dim3 dimGrid(1,1,1);
 	
+	dim3 dimblock(1024,1,1);
+	dim3 dimGrid(ceil((double)(SIZE/1024)),1,1);
+
 	SumaVecCU<<<dimGrid,dimblock>>>(d_A,d_B,d_C);
 	cudaDeviceSynchronize();//espera que termine la funcion anterior 
 	cudaMemcpy(h_C,d_C,SIZE*sizeof(int),cudaMemcpyDeviceToHost);//copia la operacion relizada en el device al host en el vector C
@@ -86,7 +104,7 @@ int main(void){
 	//terminamos la cuenta del reloj	
 	endGPU = clock();
 	
-	imprimeVec(h_C);
+	//imprimeVec(h_C);
 	double time_GPU=((double)(endGPU-startGPU))/CLOCKS_PER_SEC;
 	cout<<endl<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
 	//------------------------------------------------------------------------------------------------------	
@@ -94,7 +112,7 @@ int main(void){
 	cudaFree(d_A);
 	cudaFree(d_B);
 	cudaFree(d_C);
-}
+
 	cout<<endl<<"El tiempo de aceleramiento fue: "<<time_CPU/time_GPU<<endl;
 	return 0;
 }

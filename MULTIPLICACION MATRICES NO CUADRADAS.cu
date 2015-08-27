@@ -65,7 +65,7 @@ int main(void){
 	inicializa(B,filB,colB);
 	
 	if(colA==filB){//para que sean multiplicables
-		//multiplicaMatrices(A,filA,colA,B,filB,colB,C);
+		multiplicaMatrices(A,filA,colA,B,filB,colB,C);
 		//imprime(C,filA,colB);
 	}else{
 		cout<<"Error, no se pueden multiplicar"<<endl;
@@ -114,7 +114,7 @@ int main(void){
 	
 	endGPU = clock();
 
-	imprime(h_C,filA,colB);
+	//imprime(h_C,filA,colB);
 	double time_GPU=((double)(endGPU-startGPU))/CLOCKS_PER_SEC;
 	cout<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
 	//-----------------------------------------------------------------------------------
