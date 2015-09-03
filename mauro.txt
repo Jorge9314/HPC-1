@@ -1,0 +1,2 @@
+imagegrayscale 
+/Desktop/hpccourse/imagegrayscale/cats.jpg
