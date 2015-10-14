@@ -4,8 +4,7 @@
 #include<malloc.h>
 #include<cuda.h>
 using namespace std; 
-#define TILE_WIDTH_X 32
-#define TILE_WIDTH_Y 32
+#define TILE_WIDTH 32
 
 /*	
 * TILE_WIDTH_X debe ser el resultado de columnas de A
@@ -16,26 +15,26 @@ using namespace std;
 
 __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){//filC=filA,colC=colB
 	
-	__shared__ float A_s[TILE_WIDTH][TILE_WIDTH_X];
-	__shared__ float B_s[TILE_WIDTH_X][TILE_WIDTH];
+	__shared__ float A_s[TILE_WIDTH][TILE_WIDTH];
+	__shared__ float B_s[TILE_WIDTH][TILE_WIDTH];
 
 	// Identifico la fila y la columna de el elemento a trabajar
-	int Row = blockIdx.y * TILE_WIDTH_Y + threadIdx.y;//la dimensión del bloque(en shared memory) va a ser el TILE_WIDTH
-	int Col = blockIdx.x * TILE_WIDTH_X + threadIdx.x;
+	int Row = blockIdx.y * TILE_WIDTH + threadIdx.y;//la dimensión del bloque(en shared memory) va a ser el TILE_WIDTH
+	int Col = blockIdx.x * TILE_WIDTH + threadIdx.x;
 
 	int suma = 0;
 	
-	for (int m=0; m < Width/TILE_WIDTH_X; m++){//¿ hasta el TILE_WIDTH mayor ?
+	for (int m=0; m < Width/TILE_WIDTH; m++){//¿ hasta el TILE_WIDTH mayor ?
 
 		//sacamos los pedazos con los que vamos a trabajar
-		A_s[threadIdx.y][threadIdx.x] = A[Row*colA + ( (m*TILE_WIDTH_X) + threadIdx.x )];//(Row*colA + k), donde k-> 0..filB (filB = colA)
+		A_s[threadIdx.y][threadIdx.x] = A[Row*colA + ( (m*TILE_WIDTH) + threadIdx.x )];//(Row*colA + k), donde k-> 0..filB (filB = colA)
 		// (m*TILE_WIDTH_X) + threadIdx.x aquí nos movemos entre las columnas 
-		B_s[threadIdx.y][threadIdx.x] = B[( (m*TILE_WIDTH_Y + threadIdx.y)*colB ) + Col];//(k*colB)+Col, donde k-> 0..filB 
+		B_s[threadIdx.y][threadIdx.x] = B[( (m*TILE_WIDTH + threadIdx.y)*colB ) + Col];//(k*colB)+Col, donde k-> 0..filB 
 		//(m*TILE_WIDTH_Y + threadIdx.y) se mueve entre las filas 
 				
 		__syncthreads();//espera a todos los hilos
 		
-		for (int k=0; k < TILE_WIDTH_X; ++k) {//es como si se moviera entre 0 y (filB || colA) que son las mismas 
+		for (int k=0; k < TILE_WIDTH; ++k) {//es como si se moviera entre 0 y (filB || colA) que son las mismas 
 			suma += A_s[threadIdx.y][k] * B_s[k][threadIdx.x];
 		}
 		__syncthreads();
@@ -77,7 +76,7 @@ int main(void){
         cudaError_t error = cudaSuccess;
 	int *A,*B,*C; //A[filA][colA],B[filB][colB],C[filA][colB]
 	int *d_A,*d_B,*d_C,*h_C;
-	int filA=700,colA=700,filB=700,colB=700;
+	int filA=700,colA=1024,filB=1024,colB=1;
 	//int filA=5,colA=10,filB=10,colB=1;
 	//-------------------------------CPU--------------------------------------------------------------------
 	A=(int*)malloc(filA*colA*sizeof(int)); 
@@ -126,8 +125,8 @@ int main(void){
 	cudaMemcpy(d_B,B,filB*colB*sizeof(int),cudaMemcpyHostToDevice);	
 
 	//Depende directamente de la dimensión de las matrices
-	dim3 dimblock(32,32,32);
-	dim3 dimGrid(ceil((double)(filA/32)),ceil((double)(colB/32)),1);
+	dim3 dimblock(1,700,1);
+	dim3 dimGrid(1,1,1);
 	
 	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
 
