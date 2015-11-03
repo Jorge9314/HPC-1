@@ -1,4 +1,4 @@
-//MULTIPLICACIÓN DE MATRICES(APLANADAS)NO CUADRADAS EN C++ y CUDA con tiempo
+//MULTIPLICACIÓN DE MATRICES CON SHARED MEMORY (CUADRADAS ÚNICAMENTE)
 #include<iostream>
 #include<stdio.h>
 #include<malloc.h>
@@ -76,7 +76,7 @@ int main(void){
         cudaError_t error = cudaSuccess;
 	int *A,*B,*C; //A[filA][colA],B[filB][colB],C[filA][colB]
 	int *d_A,*d_B,*d_C,*h_C;
-	int filA=700,colA=1024,filB=1024,colB=1;
+	int filA=1024,colA=1024,filB=1024,colB=1024;
 	//int filA=5,colA=10,filB=10,colB=1;
 	//-------------------------------CPU--------------------------------------------------------------------
 	A=(int*)malloc(filA*colA*sizeof(int)); 
