@@ -24,7 +24,7 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 
 	int suma = 0;
 	
-	for (int m=0; m < Width/TILE_WIDTH; m++){//¿ hasta el TILE_WIDTH mayor ?
+	for (int m=0; m < colA/TILE_WIDTH; m++){//¿ hasta el TILE_WIDTH mayor ?
 
 		//sacamos los pedazos con los que vamos a trabajar
 		A_s[threadIdx.y][threadIdx.x] = A[Row*colA + ( (m*TILE_WIDTH) + threadIdx.x )];//(Row*colA + k), donde k-> 0..filB (filB = colA)
@@ -125,8 +125,8 @@ int main(void){
 	cudaMemcpy(d_B,B,filB*colB*sizeof(int),cudaMemcpyHostToDevice);	
 
 	//Depende directamente de la dimensión de las matrices
-	dim3 dimblock(1,700,1);
-	dim3 dimGrid(1,1,1);
+	dim3 dimblock(32,32,1);
+	dim3 dimGrid(ceil((double)(colA/32)),ceil((double)(filA/32)),1);
 	
 	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
 
