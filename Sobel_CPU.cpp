@@ -4,6 +4,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include<opencv2/opencv.hpp>
+#include<math.h>
 using namespace std; 
 using namespace cv;
 
@@ -30,7 +31,7 @@ void convolucion(unsigned char *imagen, int mascara[3][3], int filas, int column
 	for(int i = 0; i < filas; i++){
 		
 		for(int j = 0; j < columnas; j++){//hacemos el recorrido por cada pixel
-                    int suma = 0;
+       int suma = 0;             
 			//aplicamos la convolucion a la "imagen" con la "mascara" y guardamos el resultado en "resultado"
 			
 			suma += mascara[1][1]*imagen[(i * columnas) + j];//Este siempre se da, no necesita fantasmitas			
@@ -88,19 +89,19 @@ int main(int argc, char **argv){
 	char* imageName = argv[1];
 	Mat image;
         
-  	image = imread(imageName, 1);
+  	/*image = imread(imageName, 1);
 
         if(argc !=2 || !image.data){
             printf("No image Data \n");
             return -1;
-        }
-	/*
+        }*/
+	
 	//PARA COMPILAR CON EL JUEZ ONLINE
         image = imread("./inputs/img1.jpg", 1);
         if(!image.data){
             printf("No image Data \n");
             return -1;
-        }*/
+        }
 	
 
         Size s = image.size();//sacamos los atributos de la imagen 
@@ -139,8 +140,8 @@ int main(int argc, char **argv){
         resultado.create(height,width,CV_8UC1);
   			
         resultado.data = G;
-        imshow("Sobel",resultado);
-        
-        waitKey(0);
+        //imshow("Sobel",resultado);
+        imwrite("./outputs/1112786793.png",resultado);
+        //waitKey(0);
         return 0;
 }
