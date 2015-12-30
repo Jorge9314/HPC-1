@@ -142,6 +142,9 @@ int main(int argc, char **argv){
         resultado.data = G;
         //imshow("Sobel",resultado);
         imwrite("./outputs/1112786793.png",resultado);
-        //waitKey(0);
+        
+        //Se libera memoria
+        free(img_gray);free(G);free(resultado_Gx);free(resultado_Gy);
+        
         return 0;
 }
