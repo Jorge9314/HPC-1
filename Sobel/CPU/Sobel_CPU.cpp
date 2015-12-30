@@ -142,5 +142,9 @@ int main(int argc, char **argv){
         imshow("Sobel",resultado);
         
         waitKey(0);
+        
+        //Se libera memoria
+        free(img_gray);free(G);free(resultado_Gx);free(resultado_Gy);
+	
         return 0;
 }
