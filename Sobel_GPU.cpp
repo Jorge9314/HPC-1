@@ -290,6 +290,22 @@ int main(int argc, char **argv){
     //imshow("Sobel",resultado_Sobel);
     imwrite("./outputs/1112786793.png",resultado_Sobel);
 
+    //Liberamos memoria
+    
+    free(h_ImagenInicial); 
+    cudaFree(d_ImagenInicial);
+    free(h_img_gray); 
+    cudaFree(d_img_gray);
+    free(h_Mascara_X); 
+    free(h_Mascara_Y); 
+    cudaFree(d_Mascara_X); 
+    cudaFree(d_Mascara_Y);
+    free(h_Gx); 
+    free(h_Gy); 
+    free(h_G); 
+    cudaFree(d_Gx); 
+    cudaFree(d_Gy);
+    cudaFree(d_G);
     
     return 0;
     
