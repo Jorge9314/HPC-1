@@ -103,7 +103,7 @@ void Union(unsigned char *img_resultado, unsigned char *resultado_Gx, unsigned c
     int j = blockIdx.x*blockDim.x+threadIdx.x;
     
     if(i < filas && j < columnas){
-        img_resultado[(i * columnas) + j] = sqrt(pow(resultado_Gx[(i * columnas) + j],2) + pow(resultado_Gx[(i * columnas) + j],2));
+        img_resultado[(i * columnas) + j] = sqrtf((resultado_Gx[(i * columnas) + j] * resultado_Gx[(i * columnas) + j]) + (resultado_Gx[(i * columnas) + j] * resultado_Gx[(i * columnas) + j]) );
     }
 }
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv){
     int *h_Mascara_X, *h_Mascara_Y,*d_Mascara_X, *d_Mascara_Y;
     char* imageName = argv[1];
     Mat image;//Imagen leída
-    unsigned char *d_Gx, *d_Gy, *h_Gx, *h_Gy, *h_G, d_G;//Operadores Sobel
+    unsigned char *d_Gx, *d_Gy, *h_Gx, *h_Gy, *h_G, *d_G;//Operadores Sobel
     
     image = imread(imageName, 1);
     
@@ -230,7 +230,7 @@ int main(int argc, char **argv){
     //-------------------------Sobel---------------------------------
     
     //Separamos memoria para G en el host y en el device
-    h_G = (int*)malloc(size);
+    h_G = (unsigned char*)malloc(size);
         
     error = cudaMalloc((void**)&d_G,size);
     if(error != cudaSuccess){
@@ -239,8 +239,8 @@ int main(int argc, char **argv){
     }
     
     //Separamos memoria para Gx y Gy en el host y device
-    h_Gx = (int*)malloc(size); 
-    h_Gy = (int*)malloc(size);
+    h_Gx = (unsigned char*)malloc(size); 
+    h_Gy = (unsigned char*)malloc(size);
         
     error = cudaMalloc((void**)&d_Gx,size);
     if(error != cudaSuccess){
