@@ -42,40 +42,15 @@ void convolucion(unsigned char *imagen, int *mascara, int filas, int columnas, u
     int suma = 0;
     
     if(i < filas && j < columnas){
-        		
-        suma += mascara[4]*imagen[(i * columnas) + j];//Este siempre se da, no necesita fantasmitas			
-        
-        //izquierdo	
-	if(j-1 < columnas && j-1 >= 0){//Si no se sale de la imagen
-            suma += mascara[3]*imagen[(i * columnas) + j-1];
-        }
-        //derecho			
-        if(j+1 < columnas && j+1 >= 0 ){//Si no se sale de la imagen
-            suma += mascara[5]*imagen[(i * columnas) + j+1];
-        }
-        //arriba			
-        if(i-1 < filas && i-1 >= 0 ){//Si no se sale de la imagen
-            suma += mascara[1]*imagen[((i-1) * columnas) + j];
-        }
-        //abajo			
-        if(i+1 < filas && i+1 >= 0){//Si no se sale de la imagen
-            suma += mascara[7]*imagen[((i+1) * columnas) + j];
-        }
-        //izquierdo arriba			
-        if(i-1 < filas && j-1 < columnas && j-1 >= 0 && i-1 >= 0){//Si no se sale de la imagen
-            suma += mascara[0]*imagen[((i-1) * columnas) + j-1];
-        }
-        //izquierdo abajo		
-        if(i+1 < filas && j-1 < columnas && j-1 >= 0 && i+1 >= 0){//Si no se sale de la imagen
-            suma += mascara[6]*imagen[((i+1) * columnas) + j-1];
-        }
-        //derecho arriba		
-        if(i-1 < filas && j+1 < columnas && j+1 >= 0 && i-1 >= 0){//Si no se sale de la imagen
-            suma += mascara[2]*imagen[((i-1) * columnas) + j+1];
-        }
-        //derecho abajo			
-        if(i+1 < filas && j+1 < columnas && j+1 >= 0 && i+1 >= 0){//Si no se sale de la imagen
-            suma += mascara[8]*imagen[((i-1) * columnas) + j+1];
+        int aux_cols = j - 1, aux_rows = i - 1;
+        for(int k = 0; k < 3; k++){//mask_rows
+        	for(int l = 0; l < 3; l++){//mask_cols
+                	if(aux_rows >= 0 && aux_cols >= 0 && aux_rows < filas && aux_cols < columnas)
+                        	suma += mascara[k][l]*imagen[(aux_rows*columnas)+ aux_cols];
+                        aux_cols++;
+                }
+                aux_rows++;
+                aux_cols = j - 1;
         }
         resultado[(i * columnas) + j] = clamp(suma);
     }
