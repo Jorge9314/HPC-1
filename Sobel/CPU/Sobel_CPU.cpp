@@ -31,45 +31,20 @@ void convolucion(unsigned char *imagen, int mascara[3][3], int filas, int column
 		
 		for(int j = 0; j < columnas; j++){//hacemos el recorrido por cada pixel
                     int suma = 0;
-			//aplicamos la convolucion a la "imagen" con la "mascara" y guardamos el resultado en "resultado"
-			
-			suma += mascara[1][1]*imagen[(i * columnas) + j];//Este siempre se da, no necesita fantasmitas			
-			//izquierdo	
-			//sum += mask[3]*imageInput[aux-1];
-			if(j-1 < columnas && j-1 >= 0){//Si no se sale de la imagen
-				suma += mascara[1][0]*imagen[(i * columnas) + j-1];
-			}
-			//derecho			
-			if(j+1 < columnas && j+1 >= 0 ){//Si no se sale de la imagen
-				suma += mascara[1][2]*imagen[(i * columnas) + j+1];
-			}
-			//arriba			
-			if(i-1 < filas && i-1 >= 0 ){//Si no se sale de la imagen
-				suma += mascara[0][1]*imagen[((i-1) * columnas) + j];
-			}
-			//abajo			
-			if(i+1 < filas && i+1 >= 0){//Si no se sale de la imagen
-				suma += mascara[2][1]*imagen[((i+1) * columnas) + j];
-			}
-			//izquierdo arriba			
-			if(i-1 < filas && j-1 < columnas && j-1 >= 0 && i-1 >= 0){//Si no se sale de la imagen
-				suma += mascara[0][0]*imagen[((i-1) * columnas) + j-1];
-			}
-			//izquierdo abajo		
-			if(i+1 < filas && j-1 < columnas && j-1 >= 0 && i+1 >= 0){//Si no se sale de la imagen
-				suma += mascara[2][0]*imagen[((i+1) * columnas) + j-1];
-			}
-			//derecho arriba		
-			if(i-1 < filas && j+1 < columnas && j+1 >= 0 && i-1 >= 0){//Si no se sale de la imagen
-				suma += mascara[0][2]*imagen[((i-1) * columnas) + j+1];
-			}
-			//derecho abajo			
-			if(i+1 < filas && j+1 < columnas && j+1 >= 0 && i+1 >= 0){//Si no se sale de la imagen
-				suma += mascara[2][2]*imagen[((i-1) * columnas) + j+1];
-			}
-			resultado[(i * columnas) + j] = clamp(suma);
-            }
-		
+                    int aux_cols = j - 1, aux_rows = i - 1;
+                    for(int k = 0; k < 3; k++){//mask_rows
+                            for(int l = 0; l < 3; l++){//mask_cols
+                                    if(aux_rows >= 0 && aux_cols >= 0 && aux_rows < filas && aux_cols < columnas)
+                                        suma += mascara[k][l]*imagen[(aux_rows*columnas)+ aux_cols];
+                                        
+                                    aux_cols++;
+                            }
+                            aux_rows++;
+                            aux_cols = j - 1;
+                    }
+                        
+                    resultado[(i * columnas) + j] = clamp(suma);
+                }
 	}
 }
 
