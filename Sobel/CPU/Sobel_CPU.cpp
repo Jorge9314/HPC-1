@@ -34,7 +34,8 @@ void convolucion(unsigned char *imagen, int mascara[3][3], int filas, int column
                     int aux_cols = j - 1, aux_rows = i - 1;
                     for(int k = 0; k < 3; k++){//mask_rows
                             for(int l = 0; l < 3; l++){//mask_cols
-                                    if(aux_rows >= 0 && aux_cols >= 0 && aux_rows < filas && aux_cols < columnas)
+                                    if((aux_rows >= 0 && aux_cols >= 0) && (aux_rows < filas && aux_cols < columnas))
+                                
                                         suma += mascara[k][l]*imagen[(aux_rows*columnas)+ aux_cols];
                                         
                                     aux_cols++;
@@ -119,7 +120,7 @@ int main(int argc, char **argv){
         waitKey(0);
         
         //Se libera memoria
-        free(img_gray);free(G);free(resultado_Gx);free(resultado_Gy);
+        free(G);free(resultado_Gx);free(resultado_Gy);
 	
         return 0;
 }
