@@ -122,7 +122,7 @@ int main(int argc, char **argv){
         //waitKey(0);
         
         //Se libera memoria
-        free(img_gray);free(G);free(resultado_Gx);free(resultado_Gy);
+        free(G);free(resultado_Gx);free(resultado_Gy);
 	
         return 0;
 }
