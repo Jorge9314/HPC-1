@@ -49,15 +49,15 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 		if(( n * TILE_WIDTH + ty) < filB && col < colB)
 			B_s[ty][tx] = B[( ( n * TILE_WIDTH + ty) * colB ) + col ];//(k*colB)+Col, donde k-> 0..filB
 		else B_s[ty][tx] = 0;
-		
+
+		m++; n++;
+
 		__syncthreads();//espera a todos los hilos
 
 		for (int k=0; k < TILE_WIDTH ; ++k) {
 			suma += A_s[ty][k] * B_s[k][tx];
 		}
 		__syncthreads();
-
-		m++; n++;
 	}
 	if(row < filA && col < colB)
 		C[ (row * colB) + col] = suma; //C[filA][colB]
@@ -89,6 +89,15 @@ __host__ void inicializa(int *A,int filas, int columnas){//inicializa arreglos
 	for(int i=0;i<filas*columnas;i++){
 		A[i]=1;
 	}
+}
+
+__host__ bool compara(int *A, int *B, int filas, int columnas){
+	for(int i = 0; i < filas; i++){
+		for(int j = 0; j < columnas; j++){
+			if(A[i*columnas+j] != B[i*columnas+j]) return false;
+		}
+	}
+	return true;
 }
 
 int main(void){
@@ -127,19 +136,19 @@ int main(void){
 	error=cudaMalloc((void**)&d_A,filA*colA*sizeof(int));
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_A"<<endl;
-            return -1;
+            //return -1;
         }
 
 	cudaMalloc((void**)&d_B,filB*colB*sizeof(int));
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_B"<<endl;
-            return -1;
+            //return -1;
         }
 
 	cudaMalloc((void**)&d_C,filA*colB*sizeof(int));
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_C"<<endl;
-            return -1;
+            //return -1;
         }
 
 	cudaMemcpy(d_A,A,filA*colA*sizeof(int),cudaMemcpyHostToDevice);//destino d_A y origen A
@@ -162,6 +171,10 @@ int main(void){
 	cout<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
 	//-----------------------------------------------------------------------------------
 	cout<<"El tiempo de aceleramiento fue: "<<time_CPU/time_GPU<<endl;
+
+	if(compara(h_C, C, filA, colB)) cout << "Buen cálculo" << endl;
+	else cout << "Mal cálculo" << endl;
+
 	free(A);free(B);free(C);free(h_C);
 	cudaFree(d_A);
 	cudaFree(d_B);
