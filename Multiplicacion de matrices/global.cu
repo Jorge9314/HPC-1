@@ -6,7 +6,8 @@
 using namespace std; 
 
 
-__global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){//filC=filA,colC=colB
+__global__ 
+void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){//filC=filA,colC=colB
 	int row = blockIdx.y*blockDim.y + threadIdx.y;
 	int col = blockIdx.x*blockDim.x + threadIdx.x;
 	if((row<filA)&&(col<colB)){
@@ -18,7 +19,8 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 	}	
 }
 
-__host__ void multiplicaMatrices(int* X,int filX,int colX,int* Y,int filY,int colY,int* Z){
+__host__ 
+void multiplicaMatrices(int* X,int filX,int colX,int* Y,int filY,int colY,int* Z){
 	for(int i=0;i<filX;i++){
 		for(int j=0;j<colY;j++){
 			int suma=0;
@@ -31,7 +33,8 @@ __host__ void multiplicaMatrices(int* X,int filX,int colX,int* Y,int filY,int co
 	}
 }
 
-__host__ void imprime(int* A,int filas, int columnas){//imprime como si fuera una matriz
+__host__ 
+void imprime(int* A,int filas, int columnas){//imprime como si fuera una matriz
 	for(int i = 0; i < filas; i++){
         	for(int j = 0; j < columnas; j++){
             		cout<<A[(i*columnas)+j]<<" ";
@@ -40,7 +43,18 @@ __host__ void imprime(int* A,int filas, int columnas){//imprime como si fuera un
     }
 }	
 
-__host__ void inicializa(int *A,int filas, int columnas){//inicializa arreglos
+__host__ 
+bool compara(int *A, int *B, int filas, int columnas){
+	for(int i = 0; i < filas; i++){
+		for(int j = 0; j < columnas; j++){
+			if(A[i*columnas+j] != B[i*columnas+j]) return false;
+		}
+	}
+	return true;
+}
+
+__host__ 
+void inicializa(int *A,int filas, int columnas){//inicializa arreglos
 	for(int i=0;i<filas*columnas;i++){
 		A[i]=1;
 	}
@@ -84,19 +98,19 @@ int main(void){
 	error=cudaMalloc((void**)&d_A,filA*colA*sizeof(int));
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_A"<<endl;
-            return -1;
+            //return -1;
         }
     
 	cudaMalloc((void**)&d_B,filB*colB*sizeof(int));
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_B"<<endl;
-            return -1;
+            //return -1;
         }
         
 	cudaMalloc((void**)&d_C,filA*colB*sizeof(int));	
         if(error != cudaSuccess){
             cout<<"Error reservando memoria para d_C"<<endl;
-            return -1;
+            //return -1;
         }
 	
 	cudaMemcpy(d_A,A,filA*colA*sizeof(int),cudaMemcpyHostToDevice);//destino d_A y origen A
@@ -104,7 +118,7 @@ int main(void){
 
 	//Depende directamente de la dimensión de las matrices
 	dim3 dimblock(32,32,1);
-	dim3 dimGrid(ceil((double)(filA/32)),ceil((double)(colB/32)),1);
+	dim3 dimGrid(ceil((double)(colB/32)),ceil((double)(filA/32)),1);
 	
 	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
 
@@ -119,6 +133,10 @@ int main(void){
 	cout<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
 	//-----------------------------------------------------------------------------------
 	cout<<"El tiempo de aceleramiento fue: "<<time_CPU/time_GPU<<endl;
+		
+	if(compara(h_C, C, filA, colB)) cout << "Buen cálculo" << endl;
+	else cout << "Mal cálculo" << endl;
+	
 	free(A);free(B);free(C);free(h_C);
 	cudaFree(d_A);
 	cudaFree(d_B);
