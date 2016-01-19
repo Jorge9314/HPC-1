@@ -1,4 +1,4 @@
-//MULTIPLICACIÓN DE MATRICES CON SHARED MEMORY (CUADRADAS ÚNICAMENTE)
+//MULTIPLICACIÓN DE MATRICES CON SHARED MEMORY
 #include<iostream>
 #include<stdio.h>
 #include<malloc.h>
@@ -15,8 +15,8 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 
 	//Para saber en qué bloque y qué hilo estamos
 	int bx = blockIdx.x;
-  	int by = blockIdx.y;
-  	int tx = threadIdx.x;
+  int by = blockIdx.y;
+  int tx = threadIdx.x;
 	int ty = threadIdx.y;
 	int gx = gridDim.x;
 	int gy = gridDim.y;
@@ -28,7 +28,7 @@ __global__ void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,in
 	int suma = 0;//para llevar la suma de las multiplicaciones
 
 	int n = 0, m = 0;
-	while(m < gx && n < gy){
+  while(m < gx && n < gy){
 		/* De A queremos sacar las columnas, por eso:
 		* col = ( ( m * TILE_WIDTH ) + tx )
 		* col = ( ( bx * TILE_WIDTH ) + tx )
@@ -106,7 +106,7 @@ int main(void){
 	int *A,*B,*C; //A[filA][colA],B[filB][colB],C[filA][colB]
 	int *d_A,*d_B,*d_C,*h_C;
 	//int filA=2048,colA=2048,filB=2048,colB=2048;
-	int filA=5,colA=10,filB=10,colB=1;
+	int filA=1,colA=1024,filB=1024,colB=1;
 	//-------------------------------CPU--------------------------------------------------------------------
 	A=(int*)malloc(filA*colA*sizeof(int));
 	B=(int*)malloc(filB*colB*sizeof(int));
@@ -154,12 +154,9 @@ int main(void){
 	cudaMemcpy(d_B,B,filB*colB*sizeof(int),cudaMemcpyHostToDevice);
 
 	//Depende directamente de la dimensión de las matrices
-	/*
 	dim3 dimblock(32,32,1);
-	dim3 dimGrid(ceil((double)(colA/32)),ceil((double)(filA/32)),1);
-	*/
-	dim3 dimblock(10,10,1);
-	dim3 dimGrid(1,1,1);
+	dim3 dimGrid(32,32,1);
+  //dim3 dimGrid(ceil((double)(colB/32)),ceil((double)(filA/32)),1);
 
 	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
 
