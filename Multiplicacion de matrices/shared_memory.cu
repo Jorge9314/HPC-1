@@ -1,4 +1,8 @@
 //MULTIPLICACIÓN DE MATRICES CON SHARED MEMORY
+/* Información para tener en cuenta:
+* A thread block will be divided into WarpsPerBlock = (ThreadsPerBlock + WarpSize - 1) / WarpSize
+* Para leer más : http://stackoverflow.com/questions/10460742/how-do-cuda-blocks-warps-threads-map-onto-cuda-cores
+*/
 #include<iostream>
 #include<stdio.h>
 #include<malloc.h>
