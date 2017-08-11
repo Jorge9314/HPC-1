@@ -2,7 +2,7 @@
 using namespace std;
 #define dbg(x) cout << #x << ": " << x << endl
 
-void print(int *M, int rows, int cols) {
+void print(float *M, int rows, int cols) {
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
       cout << M[i * cols + j] << " " ;
@@ -15,7 +15,7 @@ void print(int *M, int rows, int cols) {
 int tonum(string &s) {
   stringstream ss;
   ss << s;
-  int out;
+  float out;
   ss >> out;
   return out;
 }
@@ -32,8 +32,9 @@ vector<string> split(string s) { // split a string by ','
   return v;
 }
 
-void receive(int *M, string file_name, int &row, int &col) {
-  cout << "--------RECEIVE---------" << endl;
+float* receive(string file_name, int &row, int &col) {
+  // cout << "--------RECEIVE---------" << endl;
+  float *M;
   string line;
   int i = 0, row_aux = 0;
   vector<string> v;
@@ -45,12 +46,13 @@ void receive(int *M, string file_name, int &row, int &col) {
       }
       else if (i == 1) {
         col = tonum(line);
-        M = (int*)malloc(row*col*sizeof(int));
+        M = (float*)malloc(row*col*sizeof(float));
+        //M = new int[row*col];
       } else { // each file with its columns
         v = split(line);
         for (int j = 0; j < col; j++) {
           M[row_aux * col + j] = tonum(v[j]);
-          cout << "M[" << row_aux * col + j << "] = " << M[row_aux * col + j] << endl;
+          // cout << "M[" << row_aux * col + j << "] = " << M[row_aux * col + j] << endl;
         }
         row_aux++;
       }
@@ -59,31 +61,33 @@ void receive(int *M, string file_name, int &row, int &col) {
     myfile.close();
   }
 
-  cout << "---------------" << endl;
+  // cout << "---------------" << endl;
+  return M;
 
   // dbg(row);
   // dbg(col);
 }
 
-void mult(int* X, int filX, int colX, int* Y, int filY, int colY, int* Z){
-	for(int i = 0; i < filX; i++){
-		for(int j = 0; j< colY; j++){
-			int suma = 0;
-			for(int k = 0; k< filY; k++){
-				suma = suma + X[i * colX + k] * Y[ k * colY + j];
-			}
-			Z[i * colY + j] = suma;
-		}
-	}
+void write(float *M, int row, int col) {
+  // writes the matrix in a file
+}
+
+void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  for(int i = 0; i < rowsA; i++){
+    for(int j = 0; j< colsB; j++){
+      int suma = 0;
+      for(int k = 0; k < rowsB; k++){
+        suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+      }
+      C[i * colsB + j] = suma;
+    }
+  }
 }
 
 int main(void) {
   int rowsA, colsA, rowsB, colsB;
-  int *A, *B, *C;
-
-  receive(A, "in1.in", rowsA, colsA);
-  dbg(A[0]);
-  receive(B, "in2.in", rowsB, colsB);
+  float *A = receive("in1.in", rowsA, colsA);
+  float *B = receive("in2.in", rowsB, colsB);
 
   dbg(rowsA), dbg(colsA);
   print(A, rowsA, colsA);
@@ -91,11 +95,16 @@ int main(void) {
   dbg(rowsB), dbg(colsB);
   print(B, rowsB, colsB);
 
-  assert(colsA != rowsB); // must be equal
+  assert(colsA == rowsB); // must be equal
 
-  C = (int*)malloc(rowA*colB*sizeof(int));
+  float *C = (float*)malloc(rowsA*colsB*sizeof(float));
+  mult(A, rowsA, colsA, B, rowsB, colsB, C);
+  print(C, rowsA, colsB);
+
+  write(C, rowsA, colsB);
 
   delete A;
   delete B;
+  delete C;
   return 0;
 }
