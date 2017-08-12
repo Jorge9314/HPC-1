@@ -69,7 +69,23 @@ float* receive(string file_name, int &row, int &col) {
 }
 
 void write(float *M, int row, int col) {
-  // writes the matrix in a file
+  ofstream myFile;
+  myFile.open("out.out");
+  myFile << row << endl;
+  myFile << col << endl;
+  for (int i = 0; i < row; i++) {
+    string line;
+    for (int j = 0; j < col; j++) {
+      ostringstream os;
+      os << M[i * col + j]; // float to string
+      if (j + 1 == col) { // if is the last
+        line += os.str();
+      } else {
+        line += os.str() + ",";
+      }
+    }
+    myFile << line << endl;
+  }
 }
 
 void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
