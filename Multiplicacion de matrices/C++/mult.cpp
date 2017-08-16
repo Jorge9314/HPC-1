@@ -88,6 +88,16 @@ void write(float *M, int row, int col) {
   }
 }
 
+void writeTimeResult(float time, int rowsA, int colsA, int rowsB, int colsB) {
+  ofstream myFile;
+  myFile.open("time.out", ios::out | ios::app );
+  myFile << time << " ";
+  myFile << rowsA << " ";
+  myFile << colsA << " ";
+  myFile << rowsB << " ";
+  myFile << colsB << endl;
+}
+
 void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
   for(int i = 0; i < rowsA; i++){
     for(int j = 0; j< colsB; j++){
@@ -100,11 +110,17 @@ void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float*
   }
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+  if (argc =! 3) {
+    printf("Must be called with the names of the out files\n");
+    return 1;
+  }
   clock_t startCPU, endCPU;
   int rowsA, colsA, rowsB, colsB;
-  float *A = receive("in1.in", rowsA, colsA);
-  float *B = receive("in2.in", rowsB, colsB);
+  string file_name1(argv[1]);
+  string file_name2(argv[2]);
+  float *A = receive(file_name1, rowsA, colsA);
+  float *B = receive(file_name1, rowsB, colsB);
 
   dbg(rowsA), dbg(colsA);
   print(A, rowsA, colsA);
@@ -130,6 +146,7 @@ int main(void) {
 
   double time_CPU = ((double)(endCPU - startCPU)) / CLOCKS_PER_SEC;
 	cout << "time was: " << time_CPU << endl;
+  writeTimeResult(time_CPU, rowsA, colsA, rowsB, colsB);
 
   return 0;
 }
