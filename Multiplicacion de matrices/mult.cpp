@@ -101,6 +101,7 @@ void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float*
 }
 
 int main(void) {
+  clock_t startCPU, endCPU;
   int rowsA, colsA, rowsB, colsB;
   float *A = receive("in1.in", rowsA, colsA);
   float *B = receive("in2.in", rowsB, colsB);
@@ -114,7 +115,11 @@ int main(void) {
   assert(colsA == rowsB); // must be equal
 
   float *C = (float*)malloc(rowsA*colsB*sizeof(float));
+
+  startCPU = clock();
   mult(A, rowsA, colsA, B, rowsB, colsB, C);
+  endCPU = clock();
+
   print(C, rowsA, colsB);
 
   write(C, rowsA, colsB);
@@ -122,5 +127,9 @@ int main(void) {
   delete A;
   delete B;
   delete C;
+
+  double time_CPU = ((double)(endCPU - startCPU)) / CLOCKS_PER_SEC;
+	cout << "time was: " << time_CPU << endl;
+
   return 0;
 }
