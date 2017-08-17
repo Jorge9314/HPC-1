@@ -90,7 +90,7 @@ void write(float *M, int row, int col) {
 
 void writeTimeResult(float time, int rowsA, int colsA, int rowsB, int colsB) {
   ofstream myFile;
-  myFile.open("time.out", ios::out | ios::app );
+  myFile.open("time.txt", ios::out | ios::app );
   myFile << time << " ";
   myFile << rowsA << " ";
   myFile << colsA << " ";
@@ -123,10 +123,10 @@ int main(int argc, char** argv) {
   float *B = receive(file_name1, rowsB, colsB);
 
   dbg(rowsA), dbg(colsA);
-  print(A, rowsA, colsA);
+  // print(A, rowsA, colsA);
 
   dbg(rowsB), dbg(colsB);
-  print(B, rowsB, colsB);
+  // print(B, rowsB, colsB);
 
   assert(colsA == rowsB); // must be equal
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
   mult(A, rowsA, colsA, B, rowsB, colsB, C);
   endCPU = clock();
 
-  print(C, rowsA, colsB);
+  // print(C, rowsA, colsB);
 
   write(C, rowsA, colsB);
 

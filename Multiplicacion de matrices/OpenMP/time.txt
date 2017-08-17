@@ -1,0 +1,66 @@
+Timepo de ejecución | Filas matriz A | Columnas matriz A | Filas matriz B | Columnas matriz B
+
+Algoritmo:
+
+void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  #pragma omp parallel for
+  for(int i = 0; i < rowsA; i++){
+    #pragma omp parallel for
+    for(int j = 0; j< colsB; j++){
+      int suma = 0;
+      #pragma omp parallel for
+      for(int k = 0; k < rowsB; k++){
+        suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+      }
+      C[i * colsB + j] = suma;
+    }
+  }
+}
+
+0.005019 100 100 100 100
+6e-06 10 10 10 10
+5.04034 1000 1000 1000 1000
+44.2667 2000 2000 2000 2000
+0.005047 100 100 100 100
+6e-06 10 10 10 10
+157.771 3000 3000 3000 3000
+355.09 4000 4000 4000 4000
+11.0658 1000 1000 1000 1000
+
+
+Algoritmo:
+
+
+void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  int i, j, k, suma, nthreads, tid;
+  #pragma omp parallel shared(A,B,C,nthreads) private(tid)
+  {
+    nthreads = omp_get_num_threads();
+    // printf("Number of Threads: %d\n",nthreads);
+
+    #pragma omp for private(i,j,k,suma)
+    for(i = 0; i < rowsA; i++){
+      tid = omp_get_thread_num();
+      // printf("Thread id: %d\n",tid);
+      for(j = 0; j< colsB; j++){
+        suma = 0;
+        for(k = 0; k < rowsB; k++){
+          suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+        }
+        C[i * colsB + j] = suma;
+      }
+    }
+
+  }
+}
+
+0.092274 10 10 10 10
+0.158035 100 100 100 100
+0.15075 10 10 10 10
+8.73692 1000 1000 1000 1000
+81.7289 2000 2000 2000 2000
+283.345 3000 3000 3000 3000
+706.188 4000 4000 4000 4000
+1485.68 5000 5000 5000 5000
+8.53963 1000 1000 1000 1000
+1534.4 5000 5000 5000 5000

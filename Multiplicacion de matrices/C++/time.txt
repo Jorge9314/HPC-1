@@ -1,0 +1,26 @@
+Timepo de ejecución | Filas matriz A | Columnas matriz A | Filas matriz B | Columnas matriz B
+
+Algoritmo:
+
+void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  for(int i = 0; i < rowsA; i++){
+    for(int j = 0; j< colsB; j++){
+      int suma = 0;
+      for(int k = 0; k < rowsB; k++){
+        suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+      }
+      C[i * colsB + j] = suma;
+    }
+  }
+}
+
+0.005029 100 100 100 100
+7e-06 10 10 10 10
+5.10184 1000 1000 1000 1000
+56.82 2000 2000 2000 2000
+5e-06 10 10 10 10
+158.88 3000 3000 3000 3000
+345.865 4000 4000 4000 4000
+737.691 5000 5000 5000 5000
+5.00332 1000 1000 1000 1000
+735.405 5000 5000 5000 5000

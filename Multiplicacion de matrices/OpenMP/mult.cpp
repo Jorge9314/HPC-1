@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
+#include <omp.h>
 #define dbg(x) cout << #x << ": " << x << endl
 
 void print(float *M, int rows, int cols) {
@@ -90,7 +91,7 @@ void write(float *M, int row, int col) {
 
 void writeTimeResult(float time, int rowsA, int colsA, int rowsB, int colsB) {
   ofstream myFile;
-  myFile.open("time.out", ios::out | ios::app );
+  myFile.open("time.txt", ios::out | ios::app );
   myFile << time << " ";
   myFile << rowsA << " ";
   myFile << colsA << " ";
@@ -99,20 +100,28 @@ void writeTimeResult(float time, int rowsA, int colsA, int rowsB, int colsB) {
 }
 
 void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
-  #pragma omp parallel for
-  for(int i = 0; i < rowsA; i++){
-    #pragma omp parallel for
-    for(int j = 0; j< colsB; j++){
-      int suma = 0;
-      #pragma omp parallel for
-      for(int k = 0; k < rowsB; k++){
-        suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+  int i, j, k, suma, nthreads, tid;
+  #pragma omp parallel shared(A,B,C,nthreads) private(tid)
+  {
+    nthreads = omp_get_num_threads();
+    // printf("Number of Threads: %d\n",nthreads);
+
+    #pragma omp for private(i,j,k,suma)
+    for(i = 0; i < rowsA; i++){
+      tid = omp_get_thread_num();
+      // printf("Thread id: %d\n",tid);
+      for(j = 0; j< colsB; j++){
+        suma = 0;
+        for(k = 0; k < rowsB; k++){
+          suma = suma + A[i * colsA + k] * B[ k * colsB + j];
+        }
+        C[i * colsB + j] = suma;
       }
-      C[i * colsB + j] = suma;
     }
+
+  }
 }
 
-}
 
 int main(int argc, char** argv) {
   if (argc =! 3) {
@@ -127,10 +136,10 @@ int main(int argc, char** argv) {
   float *B = receive(file_name2, rowsB, colsB);
 
   dbg(rowsA), dbg(colsA);
-  print(A, rowsA, colsA);
+  // print(A, rowsA, colsA);
 
   dbg(rowsB), dbg(colsB);
-  print(B, rowsB, colsB);
+  // print(B, rowsB, colsB);
 
   assert(colsA == rowsB); // must be equal
 
@@ -140,7 +149,7 @@ int main(int argc, char** argv) {
   mult(A, rowsA, colsA, B, rowsB, colsB, C);
   endCPU = clock();
 
-  print(C, rowsA, colsB);
+  // print(C, rowsA, colsB);
 
   write(C, rowsA, colsB);
 
