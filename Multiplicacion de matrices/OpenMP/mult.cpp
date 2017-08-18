@@ -100,7 +100,8 @@ void writeTimeResult(float time, int rowsA, int colsA, int rowsB, int colsB) {
 }
 
 void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
-  int i, j, k, suma, nthreads, tid;
+  int i, j, k, nthreads, tid;
+  float suma;
   #pragma omp parallel shared(A,B,C,nthreads) private(tid)
   {
     nthreads = omp_get_num_threads();
@@ -111,7 +112,7 @@ void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float*
       tid = omp_get_thread_num();
       // printf("Thread id: %d\n",tid);
       for(j = 0; j< colsB; j++){
-        suma = 0;
+        suma = 0.0;
         for(k = 0; k < rowsB; k++){
           suma = suma + A[i * colsA + k] * B[ k * colsB + j];
         }
@@ -128,7 +129,8 @@ int main(int argc, char** argv) {
     printf("Must be called with the names of the out files\n");
     return 1;
   }
-  clock_t startCPU, endCPU;
+
+  time_t start,end;
   int rowsA, colsA, rowsB, colsB;
   string file_name1(argv[1]);
   string file_name2(argv[2]);
@@ -145,9 +147,11 @@ int main(int argc, char** argv) {
 
   float *C = (float*)malloc(rowsA*colsB*sizeof(float));
 
-  startCPU = clock();
+
+  time (&start);
   mult(A, rowsA, colsA, B, rowsB, colsB, C);
-  endCPU = clock();
+  time (&end);
+
 
   // print(C, rowsA, colsB);
 
@@ -157,9 +161,11 @@ int main(int argc, char** argv) {
   delete B;
   delete C;
 
-  double time_CPU = ((double)(endCPU - startCPU)) / CLOCKS_PER_SEC;
-	cout << "time was: " << time_CPU << endl;
-  writeTimeResult(time_CPU, rowsA, colsA, rowsB, colsB);
+
+  double dif = difftime (end,start);
+  printf ("Elasped time is %.2lf seconds.", dif );
+
+  writeTimeResult(dif, rowsA, colsA, rowsB, colsB);
 
   return 0;
 }
