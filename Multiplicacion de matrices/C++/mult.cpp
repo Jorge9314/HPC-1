@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 #define dbg(x) cout << #x << ": " << x << endl
+#include <time.h>
 
 void print(float *M, int rows, int cols) {
   for (int i = 0; i < rows; i++) {
@@ -115,7 +116,9 @@ int main(int argc, char** argv) {
     printf("Must be called with the names of the out files\n");
     return 1;
   }
-  clock_t startCPU, endCPU;
+  // clock_t startCPU, endCPU;
+  time_t start,end;
+
   int rowsA, colsA, rowsB, colsB;
   string file_name1(argv[1]);
   string file_name2(argv[2]);
@@ -132,9 +135,11 @@ int main(int argc, char** argv) {
 
   float *C = (float*)malloc(rowsA*colsB*sizeof(float));
 
-  startCPU = clock();
+  // startCPU = clock();
+  time (&start);
   mult(A, rowsA, colsA, B, rowsB, colsB, C);
-  endCPU = clock();
+  time (&end);
+  // endCPU = clock();
 
   // print(C, rowsA, colsB);
 
@@ -144,9 +149,13 @@ int main(int argc, char** argv) {
   delete B;
   delete C;
 
-  double time_CPU = ((double)(endCPU - startCPU)) / CLOCKS_PER_SEC;
-	cout << "time was: " << time_CPU << endl;
-  writeTimeResult(time_CPU, rowsA, colsA, rowsB, colsB);
+  // double time_CPU = ((double)(endCPU - startCPU)) / CLOCKS_PER_SEC;
+	// cout << "time was: " << time_CPU << endl;
+
+  double dif = difftime (end,start);
+  printf ("Elasped time is %.2lf seconds.", dif );
+
+  writeTimeResult(dif, rowsA, colsA, rowsB, colsB);
 
   return 0;
 }
