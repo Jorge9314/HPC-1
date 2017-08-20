@@ -1,3 +1,5 @@
+Timepo de ejecución | Filas matriz A | Columnas matriz A | Filas matriz B | Columnas matriz B
+
 157 3000 3000 3000 3000
 158 3000 3000 3000 3000
 44 2000 2000 2000 2000
