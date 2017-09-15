@@ -1,145 +1,191 @@
-//MULTIPLICACIÓN DE MATRICES(APLANADAS)NO CUADRADAS EN C++ y CUDA con tiempo
-#include<iostream>
 #include<stdio.h>
+#include <stdlib.h>
 #include<malloc.h>
+#include <time.h>
 #include<cuda.h>
-using namespace std; 
+
+typedef char* string;
 
 
-__global__ 
-void MultiplicaMatricesCU(int* A,int filA,int colA,int* B,int filB,int colB,int* C){//filC=filA,colC=colB
-	int row = blockIdx.y*blockDim.y + threadIdx.y;
-	int col = blockIdx.x*blockDim.x + threadIdx.x;
-	if((row<filA)&&(col<colB)){
-		int suma=0;
-		for(int k=0;k<filB;k++){//Se mueve entre las filas de B 
-			suma=suma+A[(row*colA)+k]*B[(k*colB)+col];
-		}
-		C[(row*colB)+col]=suma;
-	}	
-}
-
-__host__ 
-void multiplicaMatrices(int* X,int filX,int colX,int* Y,int filY,int colY,int* Z){
-	for(int i=0;i<filX;i++){
-		for(int j=0;j<colY;j++){
-			int suma=0;
-			for(int k=0;k<filY;k++){
-				suma=suma+X[(i*colX)+k]*Y[(k*colY)+j];
-
-			}
-			Z[(i*colY)+j]=suma;
-		}	
-	}
-}
-
-__host__ 
-void imprime(int* A,int filas, int columnas){//imprime como si fuera una matriz
-	for(int i = 0; i < filas; i++){
-        	for(int j = 0; j < columnas; j++){
-            		cout<<A[(i*columnas)+j]<<" ";
-        	}
-        cout<<endl;
+__global__
+void multCU(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  int row = blockIdx.y * blockDim.y + threadIdx.y;
+  int col = blockIdx.x * blockDim.x + threadIdx.x;
+  if((row < rowsA) && (col < colsB)) {
+    int sum = 0;
+    for(int k = 0; k < rowsB; k++) {
+      sum += A[row * colsA + k] * B[k * colsB + col];
     }
-}	
+    C[row * colsB + col] = sum;
+  }
+}
 
-__host__ 
-bool compara(int *A, int *B, int filas, int columnas){
-	for(int i = 0; i < filas; i++){
-		for(int j = 0; j < columnas; j++){
-			if(A[i*columnas+j] != B[i*columnas+j]) return false;
+
+__host__
+void mult(float* A, int rowsA, int colsA, float* B, int rowsB, int colsB, float* C){
+  int i, j, k;
+  for(i = 0; i < rowsA; i++){
+    for(j = 0; j< colsB; j++){
+      int sum = 0;
+      for(k = 0; k < rowsB; k++){
+        sum += A[i * colsA + k] * B[ k * colsB + j];
+      }
+      C[i * colsB + j] = sum;
+    }
+  }
+}
+
+__host__
+bool compare(float *A, float *B, int rows, int cols){
+  int i, j;
+	for(i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			if (A[ i * cols + j] != B[i * cols + j]) return false;
 		}
 	}
 	return true;
 }
 
-__host__ 
-void inicializa(int *A,int filas, int columnas){//inicializa arreglos
-	for(int i=0;i<filas*columnas;i++){
-		A[i]=1;
-	}
+__host__
+void print(float* M, int rows, int cols){
+  printf("---------------print matrix--------------\n");
+  for(int i = 0; i < rows; i++) {
+    for(int j = 0; j < cols; j++) {
+      printf("%f ", M[i * cols + j]);
+    }
+    printf("\n");
+  }
 }
 
-int main(void){
+__host__
+void receive(float *M, FILE *stream, int rows, int cols) {
+  int i, j;
+  for(i = 0; i < rows; i++) {
+    for(j = 0; j < cols; j++) {
+      fscanf(stream, "%f,", &M[i * cols + j]);
+    }
+  }
+  fclose(stream);
+}
 
-	clock_t startCPU,endCPU,startGPU,endGPU;  
-        cudaError_t error = cudaSuccess;
-	int *A,*B,*C; //A[filA][colA],B[filB][colB],C[filA][colB]
-	int *d_A,*d_B,*d_C,*h_C;
-	int filA=1024,colA=1024,filB=1024,colB=1024;
-	//int filA=5,colA=10,filB=10,colB=1;
-	//-------------------------------CPU--------------------------------------------------------------------
-	startCPU = clock();	
+__host__
+void write(float *M, int rows, int cols, string file_name) {
+  FILE *stream;
+  int i, j;
+  stream = fopen(file_name, "w");
+  fprintf(stream, "%d\n", rows);
+  fprintf(stream, "%d\n", cols);
+  for(i = 0; i < rows; i++) {
+    for(j = 0; j < cols; j++) {
+      if (j + 1 == cols) fprintf(stream, "%.2f", M[i * cols + j]);
+      else fprintf(stream, "%.2f,", M[i * cols + j]);
+    }
+    fprintf(stream, "%s\n","");
+  }
+  fclose(stream);
+}
 
-	A=(int*)malloc(filA*colA*sizeof(int)); 
-	B=(int*)malloc(filB*colB*sizeof(int));
-	C=(int*)malloc(filA*colB*sizeof(int));
 
-	inicializa(A,filA,colA);
-	inicializa(B,filB,colB);
-	
-	if(colA==filB){//para que sean multiplicables
-		multiplicaMatrices(A,filA,colA,B,filB,colB,C);
-		//imprime(C,filA,colB);
-	}else{
-		cout<<"Error, no se pueden multiplicar"<<endl;
-		return 0;
-	}
-	
-	endCPU = clock();
+int main(int argc, char** argv){
 
-	double time_CPU=((double)(endCPU-startCPU))/CLOCKS_PER_SEC;
-	cout<<"El tiempo transcurrido en la CPU fue: "<<time_CPU<<endl;
-	//-------------------------------GPU--------------------------------------------------------------------
-	h_C=(int*)malloc(filA*colB*sizeof(int));
+	if (argc =! 3) {
+    printf("Must be called with the names of the files\n");
+    return 1;
+  }
 
-	startGPU = clock();
+  //-------------------------------CPU--------------------------------------
 
-	error=cudaMalloc((void**)&d_A,filA*colA*sizeof(int));
-        if(error != cudaSuccess){
-            cout<<"Error reservando memoria para d_A"<<endl;
-            //return -1;
-        }
-    
-	cudaMalloc((void**)&d_B,filB*colB*sizeof(int));
-        if(error != cudaSuccess){
-            cout<<"Error reservando memoria para d_B"<<endl;
-            //return -1;
-        }
-        
-	cudaMalloc((void**)&d_C,filA*colB*sizeof(int));	
-        if(error != cudaSuccess){
-            cout<<"Error reservando memoria para d_C"<<endl;
-            //return -1;
-        }
-	
-	cudaMemcpy(d_A,A,filA*colA*sizeof(int),cudaMemcpyHostToDevice);//destino d_A y origen A
-	cudaMemcpy(d_B,B,filB*colB*sizeof(int),cudaMemcpyHostToDevice);	
+	time_t start, end;
+	float *A, *B, *C;
+	int rowsA, colsA, rowsB, colsB;
+  double timeCPU, timeGPU;
 
-	//Depende directamente de la dimensión de las matrices
-	dim3 dimblock(32,32,1);
-	dim3 dimGrid(ceil((double)(colB/32)),ceil((double)(filA/32)),1);
-	
-	MultiplicaMatricesCU<<<dimGrid,dimblock>>>(d_A,filA,colA,d_B,filB,colB,d_C);
+  FILE *f1, *f2;
+  f1 = fopen(argv[1], "r");
+  f2 = fopen(argv[2], "r");
 
+  fscanf(f1, "%d", &rowsA);
+  fscanf(f1, "%d", &colsA);
+  fscanf(f2, "%d", &rowsB);
+  fscanf(f2, "%d", &colsB);
+
+  A = (float*)malloc(rowsA * colsA * sizeof(float));
+  B = (float*)malloc(rowsB * colsB * sizeof(float));
+	C = (float*)malloc(rowsA * colsB * sizeof(float));
+
+	receive(A, f1, rowsA, colsA);
+  // printf("rowsA: %d\n", rowsA);
+  // printf("colsA: %d\n", colsA);
+  // print(A, rowsA, colsA);
+
+  receive(B, f2, rowsB, colsB);
+  // printf("rowsA: %d\n", rowsB);
+  // printf("colsA: %d\n", colsB);
+  // print(B, rowsB, colsB);
+
+	if (colsA != rowsB) return 1; // must be equal
+
+	start = clock();
+	mult(A, rowsA, colsA, B, rowsB, colsB, C);
+	end = clock();
+
+  // print(C, rowsA, colsB);
+
+  timeCPU = difftime(end, start);
+  printf ("Elasped time in CPU: %.2lf seconds.\n", timeCPU);
+
+  // write(C, rowsA, colsB, "CPU.out");
+
+	//-------------------------------GPU--------------------------------------
+  cudaError_t error = cudaSuccess;
+  float *d_A, *d_B, *d_C, *h_C;
+	h_C = (float*)malloc(rowsA * colsB * sizeof(float));
+
+	error = cudaMalloc((void**)&d_A, rowsA * colsA * sizeof(float));
+  if (error != cudaSuccess) {
+      printf("Error allocating memory to d_A");
+      return 1;
+  }
+
+  error = cudaMalloc((void**)&d_B, rowsB * colsB * sizeof(float));
+  if (error != cudaSuccess) {
+      printf("Error allocating memory to d_B");
+      return 1;
+  }
+
+  error = cudaMalloc((void**)&d_C, rowsA * colsB * sizeof(float));
+  if (error != cudaSuccess) {
+      printf("Error allocating memory to d_C");
+      return 1;
+  }
+
+	cudaMemcpy(d_A, A, rowsA * colsA * sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_B, B, rowsB * colsB * sizeof(float), cudaMemcpyHostToDevice);
+
+  int blockSize = 32;
+	dim3 dimblock(blockSize, blockSize, 1);
+  dim3 dimGrid(ceil((colsB) / float(blockSize)), ceil((rowsA) / float(blockSize)), 1);
+
+  start = clock();
+	multCU<<<dimGrid,dimblock>>>(d_A, rowsA, colsA, d_B, rowsB, colsB, d_C);
 	cudaDeviceSynchronize();
+  end = clock();
 
-	cudaMemcpy(h_C,d_C,filA*colB*sizeof(int),cudaMemcpyDeviceToHost);
-	
-	endGPU = clock();
+  timeGPU = difftime(end, start);
+  printf ("Elasped time in GPU: %.2lf seconds.\n", timeGPU);
 
-	//imprime(h_C,filA,colB);
-	double time_GPU=((double)(endGPU-startGPU))/CLOCKS_PER_SEC;
-	cout<<"El tiempo transcurrido en la GPU fue: "<<time_GPU<<endl;
-	//-----------------------------------------------------------------------------------
-	cout<<"El tiempo de aceleramiento fue: "<<time_CPU/time_GPU<<endl;
-		
-	if(compara(h_C, C, filA, colB)) cout << "Buen cálculo" << endl;
-	else cout << "Mal cálculo" << endl;
-	
-	free(A);free(B);free(C);free(h_C);
-	cudaFree(d_A);
-	cudaFree(d_B);
-	cudaFree(d_C);
+	cudaMemcpy(h_C, d_C, rowsA * colsB * sizeof(float), cudaMemcpyDeviceToHost);
+
+	// print(h_C, rowsA, colsB);
+
+	if (!compare(h_C, C, rowsA, colsB)) {
+    printf("Error multiplying\n");
+  } else {
+    printf("Acceleration time: %lf\n", timeCPU / timeGPU);
+    // write(h_C, rowsA, colsB, "GPU.out");
+  }
+
+	free(A); free(B); free(C); free(h_C);
+	cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
 	return 0;
 }
