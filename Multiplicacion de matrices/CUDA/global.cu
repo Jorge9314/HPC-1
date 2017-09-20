@@ -88,7 +88,7 @@ void write(float *M, int rows, int cols, string file_name) {
 
 int main(int argc, char** argv){
 
-	if (argc =! 3) {
+	if (argc != 3) {
     printf("Must be called with the names of the files\n");
     return 1;
   }
