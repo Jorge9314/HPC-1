@@ -3,7 +3,7 @@
 
 ## Programas auxiliares
 
-(compareFiles.c)[https://github.com/carolinajimenez26/HPC/blob/master/Multiplicacion%20de%20matrices/C/compareFiles.c] es un comparador de archivos, se pueden comparar los archivos
+[compareFiles.c](https://github.com/carolinajimenez26/HPC/blob/master/Multiplicacion%20de%20matrices/C/compareFiles.c) es un comparador de archivos, se pueden comparar los archivos
 de salida de las multiplicaciones.
 
 ### Para  compilarlo
@@ -20,7 +20,7 @@ Se deben enviar por parámetro el nombre de los dos archivos a comparar.
 ./a.compare matrix1.in matrix2.in
 ```
 
-(createMatrixfile.c)[https://github.com/carolinajimenez26/HPC/blob/master/Multiplicacion%20de%20matrices/C/createMatrixfile.c] es un generador de matrices. La salida de este programa
+[createMatrixfile.c](https://github.com/carolinajimenez26/HPC/blob/master/Multiplicacion%20de%20matrices/C/createMatrixfile.c) es un generador de matrices. La salida de este programa
 será algo como esto:
 
 2
