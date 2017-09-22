@@ -2,8 +2,13 @@
 #include<stdio.h>
 #include<malloc.h>
 #include<opencv2/opencv.hpp>
+#include<cuda.h>
 using namespace std;
 using namespace cv;
+
+#define RED 2
+#define GREEN 1
+#define BLUE 0
 
 __host__
 void brightness(unsigned char *imageInput, int width, int height, unsigned char *imageOutput){
@@ -15,7 +20,7 @@ void brightness(unsigned char *imageInput, int width, int height, unsigned char 
 }
 
 __global__
-void brightness(unsigned char *imageInput, int width, int height, unsigned char *imageOutput){
+void brightnessCU(unsigned char *imageInput, int width, int height, unsigned char *imageOutput){
 
   int row = blockIdx.y*blockDim.y+threadIdx.y;
   int col = blockIdx.x*blockDim.x+threadIdx.x;
@@ -28,16 +33,18 @@ void brightness(unsigned char *imageInput, int width, int height, unsigned char 
 int main(int argc, char **argv){
 
   cudaError_t error = cudaSuccess;
-  unsigned char *h_ImagenInicial, *d_ImagenInicial;
-  unsigned char *h_img_gray, *d_img_gray;
-  unsigned char *h_ImagenGrises;
+  unsigned char *h_inputImage, *d_inputImage, *h_outputImage, *d_outputImage, *h_outputImageCopy;
   char* imageName = argv[1];
-  Mat image;
 
-  image = imread(imageName, 1);
+  if (argc !=2) {
+    printf("Path of the image must be specified!!\n");
+    return 1;
+  }
 
-  if(argc !=2 || !image.data) {
-    printf("No image Data \n");
+  Mat image = imread(imageName, 1);
+
+  if (!image.data) {
+    printf("No image Data\n");
     return 1;
   }
 
@@ -45,56 +52,54 @@ int main(int argc, char **argv){
 
   int width = s.width, height = s.height;
   int sz = sizeof(unsigned char)*width*height*image.channels();
-  int size = sizeof(unsigned char)*width*height;//para la imagen en escala de grises
+  int size = sizeof(unsigned char)*width*height; // image with brightness
 
-  h_ImagenInicial = (unsigned char*)malloc(sz);
+  h_inputImage = (unsigned char*)malloc(sz);
+  h_inputImage = image.data;
 
-  error = cudaMalloc((void**)&d_ImagenInicial,sz);
+  error = cudaMalloc((void**)&d_inputImage,sz);
   if(error != cudaSuccess){
-    cout << "Error reservando memoria para d_ImagenInicial" << endl;
+    cout << "Error allocating memory for d_inputImage" << endl;
     exit(-1);
   }
 
-  h_ImagenInicial = image.data;
-
-  //Copiamos los datos al device
-  error = cudaMemcpy(d_ImagenInicial, h_ImagenInicial, sz, cudaMemcpyHostToDevice);
+  error = cudaMemcpy(d_inputImage, h_inputImage, sz, cudaMemcpyHostToDevice);
   if(error != cudaSuccess){
-    printf("Error copiando los datos de h_ImagenInicial a d_ImagenInicial \n");
+    printf("Error copying h_inputImage to d_inputImage\n");
     exit(-1);
   }
 
-  h_img_gray = (unsigned char*)malloc(size);
+  h_outputImage = (unsigned char*)malloc(size);
+  h_outputImageCopy = (unsigned char*)malloc(size);
 
-  error = cudaMalloc((void**)&d_img_gray,size);
+  error = cudaMalloc((void**)&d_outputImage, size);
   if(error != cudaSuccess){
-    printf("Error reservando memoria para d_img_gray\n");
+    printf("Error allocating memory for d_outputImage\n");
     exit(-1);
   }
 
-  int blockSize = 32;
+  int blockSize = 32.0;
   dim3 dimBlock(blockSize, blockSize, 1);
-  dim3 dimGrid(ceil(width/float(blockSize)), ceil(height/float(blockSize)), 1);
-  brightness<<<dimGrid,dimBlock>>>(d_ImagenInicial, width, height, d_img_gray);
+  dim3 dimGrid(ceil(width/blockSize), ceil(height/blockSize), 1);
+  brightnessCU<<<dimGrid,dimBlock>>>(d_inputImage, width, height, d_outputImage);
   cudaDeviceSynchronize();
-
-  //Copiamos datos de la imágen a escala de grises del device al host
-  error = cudaMemcpy(h_img_gray,d_img_gray,size, cudaMemcpyDeviceToHost);
+/*
+  error = cudaMemcpy(h_outputImage, d_outputImage, cudaMemcpyDeviceToHost);
   if(error != cudaSuccess){
-    printf("Error copiando los datos de d_img_gray a h_img_gray \n");
+    printf("Error copying d_outputImage to h_outputImageCopy\n");
     exit(-1);
   }
-
-  //Mostramos la imagen en escala de grises de GPU
-  Mat resultado_gray_image;
-  resultado_gray_image.create(height,width,CV_8UC1);
-  resultado_gray_image.data = h_img_gray;
+*/
+/*
+  Mat result;
+  result.create(height, width, CV_8UC1);
+  result.data = h_outputImage;
 
   //imshow("Grises",resultado_gray_image);
 
-  //imwrite("./outputs/1112786793.png",resultado_gray_image);
-
-
+  imwrite("out.png",result);
+*/
+/*
   //Imagen escala de grises CPU
 
   //Separamos memoria para h_ImagenGrises
@@ -116,6 +121,6 @@ int main(int argc, char **argv){
   free(h_ImagenInicial);free(h_img_gray);
   cudaFree(d_ImagenInicial);cudaFree(d_img_gray);
   free(h_ImagenGrises);
-
+*/
   return 0;
 }
