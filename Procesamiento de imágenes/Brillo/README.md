@@ -8,6 +8,7 @@
 
 ```bash
 cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF ..
+make
 ```
 
 Esto generará el ejecutable _a.out_
@@ -17,7 +18,7 @@ Esto generará el ejecutable _a.out_
 En la carpeta _build_ escribir lo siguiente:
 
 ```bash
-./a.out
+./a.out imagePath
 ```
 
 
