@@ -77,9 +77,9 @@ int main(int argc, char** argv){
 	sum(h_A, h_B, h_C, sizeA);
 	end = clock();
 
-	print(h_C, sizeA);
+	// print(h_C, sizeA);
 	timeCPU = difftime(end, start);
-	printf("CPU time: %f\n", timeCPU);
+	printf("CPU time: %.2lf\n", timeCPU);
 
 	// --------------- GPU -----------------
 	float *d_A, *d_B, *d_C, *h_C2;
@@ -106,7 +106,7 @@ int main(int argc, char** argv){
 	cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
-	int blockSize = 32.0;
+	double blockSize = 32.0;
 	dim3 dimBlock(blockSize,1,1);
 	dim3 dimGrid(ceil(sizeA / blockSize), 1, 1);
 
@@ -116,9 +116,9 @@ int main(int argc, char** argv){
 	end = clock();
 	cudaMemcpy(h_C2, d_C, size, cudaMemcpyDeviceToHost);
 
-	print(h_C2, sizeA);
+	// print(h_C2, sizeA);
 	timeGPU = difftime(end, start);
-	printf("GPU time: %f\n", timeGPU);
+	printf("GPU time: %.2lf\n", timeGPU);
 
 	if (compare(h_C, h_C2, sizeA)) {
 		printf("Acceleration time: %f\n", timeCPU / timeGPU);
