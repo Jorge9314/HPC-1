@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<malloc.h>
 #include<opencv2/opencv.hpp>
+#include "timer.cpp"
 using namespace std;
 using namespace cv;
 
@@ -124,6 +125,13 @@ void UnionCU(unsigned char *imageOutput, unsigned char *Gx, unsigned char *Gy, i
   }
 }
 
+void write(Size s, string fileName, long elapsedTime){
+  long size = s.width * s.height;
+  ofstream ofs("../global.time", ios_base::app);
+  ofs << size << " " << fileName << " " << elapsedTime << "\n" ;
+  ofs.close();
+}
+
 int main(int argc, char **argv){
 
   cudaError_t error = cudaSuccess;
@@ -149,6 +157,8 @@ int main(int argc, char **argv){
   // waitKey(0);
   //
   // // ------------------------- Gray ------------------------------
+
+  Timer t("Sobel_Global");
 
   Size s = image.size();
 
@@ -280,7 +290,9 @@ int main(int argc, char **argv){
   // waitKey(0);
   imwrite("Sobel_Global.jpg", result_Sobel);
 
-  free(h_imageInput);
+  write(s, imageName, t.elapsed());
+
+  // free(h_imageInput);
   cudaFree(d_imageInput);
   free(h_imageGray);
   cudaFree(d_imageGray);
