@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include<malloc.h>
 #include<opencv2/opencv.hpp>
-#include "timer.cpp"
+// #include "timer.cpp"
 using namespace std;
 using namespace cv;
 
@@ -125,7 +125,7 @@ void UnionCU(unsigned char *imageOutput, unsigned char *Gx, unsigned char *Gy, i
   }
 }
 
-void write(Size s, string fileName, long elapsedTime){
+void write(Size s, string fileName, double elapsedTime){
   long size = s.width * s.height;
   ofstream ofs("../global.time", ios_base::app);
   ofs << size << " " << fileName << " " << elapsedTime << "\n" ;
@@ -135,6 +135,7 @@ void write(Size s, string fileName, long elapsedTime){
 int main(int argc, char **argv){
 
   cudaError_t error = cudaSuccess;
+  clock_t start, end;
   unsigned char *h_imageInput, *d_imageInput, *h_imageGray, *d_imageGray;
   unsigned char *d_Gx, *d_Gy, *h_G, *d_G; // Sobel Operators
   int *d_XMask, *d_YMask;
@@ -158,7 +159,8 @@ int main(int argc, char **argv){
   //
   // // ------------------------- Gray ------------------------------
 
-  Timer t("Sobel_Global");
+  // Timer t("Sobel_Global");
+  start = clock();
 
   Size s = image.size();
 
@@ -290,7 +292,10 @@ int main(int argc, char **argv){
   // waitKey(0);
   imwrite("Sobel_Global.jpg", result_Sobel);
 
-  write(s, imageName, t.elapsed());
+  // write(s, imageName, t.elapsed());
+  end = clock();
+  double time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  write(s, imageName, time_used);
 
   // free(h_imageInput);
   cudaFree(d_imageInput);
