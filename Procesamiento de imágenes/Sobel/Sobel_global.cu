@@ -3,6 +3,7 @@
 #include<malloc.h>
 #include<opencv2/opencv.hpp>
 // #include "timer.cpp"
+#include <time.h>
 using namespace std;
 using namespace cv;
 
@@ -125,11 +126,15 @@ void UnionCU(unsigned char *imageOutput, unsigned char *Gx, unsigned char *Gy, i
   }
 }
 
-void write(Size s, string fileName, double elapsedTime){
+
+void write(Size s, char* fileName, double elapsedTime){
   long size = s.width * s.height;
-  ofstream ofs("../global.time", ios_base::app);
-  ofs << size << " " << fileName << " " << elapsedTime << "\n" ;
-  ofs.close();
+  FILE *f = fopen("../global.time", "a");
+  if (f == NULL) printf("Error opening file!\n");
+  else {
+    fprintf(f, "%ld %s %lf\n", size, fileName, elapsedTime);
+  }
+  fclose(f);
 }
 
 int main(int argc, char **argv){
@@ -295,6 +300,7 @@ int main(int argc, char **argv){
   // write(s, imageName, t.elapsed());
   end = clock();
   double time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  // printf("elapsed time: %lf", time_used);
   write(s, imageName, time_used);
 
   // free(h_imageInput);
